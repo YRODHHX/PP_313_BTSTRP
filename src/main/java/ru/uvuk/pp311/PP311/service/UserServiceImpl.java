@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.uvuk.pp311.PP311.Repozitori.UserRepository;
 import ru.uvuk.pp311.PP311.model.User;
 
@@ -15,8 +16,7 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
 
-    private final  PasswordEncoder passwordEncoder;
-
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
     @Autowired
@@ -26,16 +26,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> showAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User showUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
 
     @Override
+    @Transactional
     public User saveUser(User user) {
         if (user.getId() != null) {
             User existingUser = userRepository.findById(user.getId())
@@ -52,21 +55,23 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         } else {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-
         return userRepository.save(user);
     }
 
     @Override
+    @Transactional
     public void deleteUserById(Long id) {
         userRepository.deleteById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
     }
